@@ -154,7 +154,17 @@ git push origin main
 - **Export/Import** for content portability
 - **Audit Log** for compliance tracking
 
-### 🔒 Security & Compliance
+### 💳 Payment Processing
+- **Stripe** - Credit/debit cards, Apple Pay, Google Pay
+- **PayPal** - PayPal accounts and credit cards
+- **Green Financial** - Cannabis-friendly banking
+- **CryptoMass** - Credit/debit to cryptocurrency conversion
+- **WooCommerce** - Existing WooCommerce integration
+- **Adapter Pattern** - Easy to add new processors
+- **Webhook Handling** - Real-time payment updates
+- **Refund Processing** - Full refund support
+
+### 🔐 Security & Compliance
 - **JWT Authentication** with refresh tokens
 - **OAuth Support** (Google, GitHub)
 - **RBAC** (Role-Based Access Control)
