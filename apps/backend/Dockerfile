@@ -8,6 +8,7 @@ COPY apps/backend ./apps/backend
 COPY packages ./packages
 
 RUN npm ci
+RUN cd apps/backend && npx prisma generate
 RUN npm run build:backend
 
 # Runtime stage
@@ -19,6 +20,7 @@ COPY package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/package*.json ./apps/backend/
+COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
 
 EXPOSE 4000
 
