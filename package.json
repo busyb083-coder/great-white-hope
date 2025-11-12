@@ -1,0 +1,33 @@
+{
+  "name": "great-white-hope",
+  "version": "1.0.0",
+  "description": "Premium THCA Hemp E-Commerce Platform - Portable, Production-Ready",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=apps/backend\" \"npm run dev --workspace=apps/frontend\"",
+    "build": "npm run build --workspace=apps/backend && npm run build --workspace=apps/frontend",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,js,json,css,md}\" \"packages/**/*.{ts,tsx,js,json,css,md}\"",
+    "migrate": "npm run migrate --workspace=apps/backend",
+    "seed": "npm run seed --workspace=apps/backend",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

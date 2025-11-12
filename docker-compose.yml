@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: gwh-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: great_white_hope
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gwh-network
+
+  # ============================================================================
+  # MinIO (S3-compatible Object Storage)
+  # ============================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: gwh-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/minio_root
+    command: minio server /minio_root --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gwh-network
+
+  # ============================================================================
+  # MailHog (Email Testing)
+  # ============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: gwh-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - gwh-network
+
+  # ============================================================================
+  # Redis (Optional - for caching and sessions)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: gwh-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gwh-network
+
+  # ============================================================================
+  # Backend API (Express + Node)
+  # ============================================================================
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile.dev
+    container_name: gwh-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/great_white_hope
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: great-white-hope
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_PUBLIC_URL: http://localhost:9000/great-white-hope
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      REDIS_URL: redis://redis:6379
+      FRONTEND_URL: http://localhost:3000
+      BACKEND_URL: http://localhost:4000
+      JWT_SECRET: dev-secret-key-change-in-production
+      LOG_LEVEL: debug
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+    networks:
+      - gwh-network
+    command: npm run dev
+
+  # ============================================================================
+  # Frontend (React + Vite)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile.dev
+    container_name: gwh-frontend
+    environment:
+      VITE_API_URL: http://localhost:4000
+      VITE_APP_NAME: Great White Hope
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+    networks:
+      - gwh-network
+    command: npm run dev
+
+networks:
+  gwh-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+  redis_data:
+    driver: local

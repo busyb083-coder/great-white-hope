@@ -1,0 +1,236 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Users & Authentication
+// ============================================================================
+
+model User {
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  password  String
+  name      String
+  role      Role    @default(VIEWER)
+  active    Boolean @default(true)
+  
+  // OAuth
+  googleId  String?
+  githubId  String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+  
+  // Relations
+  pages     Page[]
+  media     Media[]
+  auditLogs AuditLog[]
+  sessions  Session[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================================================
+// Content & Pages
+// ============================================================================
+
+model Page {
+  id        Int     @id @default(autoincrement())
+  slug      String  @unique
+  title     String
+  content   Json    // Blocks array
+  published Boolean @default(false)
+  
+  // SEO
+  metaTitle    String?
+  metaDesc     String?
+  metaKeywords String?
+  
+  // Versioning
+  version      Int     @default(1)
+  versions     PageVersion[]
+  
+  // Author
+  authorId  Int
+  author    User    @relation(fields: [authorId], references: [id])
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  publishedAt DateTime?
+  
+  @@index([slug])
+  @@index([published])
+  @@index([authorId])
+}
+
+model PageVersion {
+  id        Int     @id @default(autoincrement())
+  pageId    Int
+  page      Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  version   Int
+  content   Json
+  createdAt DateTime @default(now())
+  
+  @@unique([pageId, version])
+  @@index([pageId])
+}
+
+// ============================================================================
+// Media & Assets
+// ============================================================================
+
+model Media {
+  id        Int     @id @default(autoincrement())
+  filename  String
+  key       String  @unique  // S3 key
+  url       String
+  type      String  // image/jpeg, application/pdf, etc.
+  size      Int     // bytes
+  width     Int?    // for images
+  height    Int?    // for images
+  
+  // Metadata
+  tags      String[]
+  alt       String?
+  
+  // Author
+  uploadedBy Int
+  uploader   User    @relation(fields: [uploadedBy], references: [id])
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([uploadedBy])
+  @@index([type])
+  @@fulltext([tags])
+}
+
+// ============================================================================
+// Products
+// ============================================================================
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  sku         String  @unique
+  name        String
+  description String?
+  category    String
+  price       Int     // cents
+  weight      String?
+  image       String?
+  inStock     Boolean @default(true)
+  
+  // SEO
+  metaTitle   String?
+  metaDesc    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@index([sku])
+}
+
+// ============================================================================
+// Orders & Transactions
+// ============================================================================
+
+model Order {
+  id            Int     @id @default(autoincrement())
+  orderNumber   String  @unique
+  items         Json    // Order items array
+  subtotal      Int     // cents
+  tax           Int     // cents
+  shipping      Int     // cents
+  total         Int     // cents
+  status        OrderStatus @default(PENDING)
+  
+  // Customer
+  email         String
+  phone         String?
+  
+  // Shipping
+  shippingAddr  Json
+  
+  // Payment
+  paymentMethod String
+  paymentId     String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([orderNumber])
+  @@index([status])
+  @@index([email])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+// ============================================================================
+// Audit & Compliance
+// ============================================================================
+
+model AuditLog {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String  // create, update, delete, publish, etc.
+  resource  String  // page, media, user, etc.
+  resourceId Int?
+  changes   Json?   // What changed
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// Settings
+// ============================================================================
+
+model Setting {
+  id    Int     @id @default(autoincrement())
+  key   String  @unique
+  value String
+  
+  @@index([key])
+}
