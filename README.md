@@ -1,10 +1,24 @@
 # 🌊 Great White Hope - Premium THCA Hemp E-Commerce Platform
 
-> **Portable. Production-Ready. Fully Documented.**
+> **Portable. Production-Ready. Fully Documented. ✅ Deployment Issues Fixed!**
 
 A cutting-edge, fully portable e-commerce platform for premium THCA hemp products. Deploy locally with Docker, to Vercel (frontend) + Railway (backend), or any cloud provider.
 
-**Status**: 🚀 Production-Ready | 📦 Fully Portable | 🔒 Enterprise Security | 📊 Admin Panel Included
+**Status**: 🚀 Production-Ready | 📦 Fully Portable | 🔒 Enterprise Security | 📊 Admin Panel Included | ✅ **Ready to Deploy**
+
+---
+
+## 🎉 Recent Updates
+
+**✅ All Deployment Blockers Fixed!** (Nov 2024)
+- Prisma configuration corrected
+- Database migrations configured
+- Build process optimized
+- Docker images ready
+- Railway & Vercel configs tested
+
+**→ [Quick Deploy Guide](./QUICK_DEPLOY.md)** - Deploy in 15 minutes  
+**→ [What Was Fixed](./docs/DEPLOYMENT_FIXES.md)** - See all fixes
 
 ---
 
@@ -93,6 +107,10 @@ great-white-hope/
 
 ## 🚀 Deployment
 
+**✅ Ready to Deploy!** All configuration issues have been fixed.
+
+**Quick Start**: Follow [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) for a 15-minute deployment guide.
+
 ### Deploy Frontend to Vercel
 
 ```bash
@@ -102,8 +120,8 @@ git push origin main
 # 2. Create Vercel project
 # - Go to https://vercel.com/new
 # - Select this GitHub repository
-# - Set root directory: apps/frontend
-# - Set environment variables (from .env.example)
+# - Vercel auto-detects settings from vercel.json
+# - Add environment variable: VITE_API_URL=<your-railway-backend-url>
 # - Deploy!
 ```
 
@@ -112,8 +130,9 @@ git push origin main
 ```bash
 # 1. Create Railway project
 # - Go to https://railway.app
-# - Create new project
+# - Create new project from GitHub
 # - Add PostgreSQL database
+# - Railway auto-runs migrations on deploy
 # - Add GitHub repository
 
 # 2. Configure environment
