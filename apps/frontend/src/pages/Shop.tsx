@@ -1,8 +1,20 @@
-import { useState, useMemo } from 'react'
-import { Search, Filter, ShoppingCart, Grid, List } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Search, Grid, List, ShoppingCart, AlertCircle } from 'lucide-react'
+import { productsAPI } from '../lib/api'
+import { useCart } from '../contexts/CartContext'
 
-const PRODUCTS = [
+interface Product {
+  id: number
+  name: string
+  price: number
+  category: string
+  description?: string
+  image?: string
+  stock?: number
+}
+
+const MOCK_PRODUCTS = [
   { id: 1, sku: 'CONC-001', name: 'Premium Live Resin', price: 4500, category: 'Concentrates', image: 'https://via.placeholder.com/300x300?text=Live+Resin' },
   { id: 2, sku: 'CONC-002', name: 'Diamond THCA Sauce', price: 5000, category: 'Concentrates', image: 'https://via.placeholder.com/300x300?text=Diamond' },
   { id: 3, sku: 'CONC-003', name: 'Rosin Concentrate', price: 3500, category: 'Concentrates', image: 'https://via.placeholder.com/300x300?text=Rosin' },
@@ -14,21 +26,55 @@ const PRODUCTS = [
 ]
 
 export default function Shop() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
-  const [priceRange, setPriceRange] = useState([0, 20000])
+  const [priceRange, setPriceRange] = useState([0, 500])
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const { addItem } = useCart()
 
-  const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter(p => {
+  // Load products on mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await productsAPI.getAll()
+        setProducts(response.data || MOCK_PRODUCTS)
+      } catch (err) {
+        console.error('Failed to load products:', err)
+        setProducts(MOCK_PRODUCTS)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProducts()
+  }, [])
+
+  // Filter products
+  useEffect(() => {
+    let filtered = products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase())
       const matchesCategory = category === 'All' || p.category === category
       const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1]
       return matchesSearch && matchesCategory && matchesPrice
     })
-  }, [search, category, priceRange])
+    setFilteredProducts(filtered)
+  }, [products, search, category, priceRange])
 
   const categories = ['All', 'Concentrates', 'Flower', 'Miscellaneous', 'Collaborators']
+
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.image,
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,13 +132,13 @@ export default function Shop() {
                   <input
                     type="range"
                     min="0"
-                    max="20000"
+                    max="500"
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                     className="w-full"
                   />
                   <p className="text-sm text-gray-600">
-                    $0 - ${(priceRange[1] / 100).toFixed(2)}
+                    ${priceRange[0]} - ${priceRange[1]}
                   </p>
                 </div>
               </div>
@@ -120,39 +166,54 @@ export default function Shop() {
               </div>
             </div>
 
-            {/* Products */}
-            {filteredProducts.length === 0 ? (
+            {/* Loading State */}
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-600">Loading products...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 text-red-700">
+                <AlertCircle size={20} />
+                {error}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-600">No products found matching your criteria</p>
               </div>
             ) : (
               <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
                 {filteredProducts.map((product) => (
-                  <Link
+                  <div
                     key={product.id}
-                    to={`/product/${product.id}`}
                     className={`group bg-white rounded-lg shadow hover:shadow-xl transition transform hover:scale-105 duration-300 overflow-hidden ${
                       viewMode === 'list' ? 'flex' : ''
                     }`}
                   >
                     <div className={viewMode === 'list' ? 'w-32 h-32 flex-shrink-0' : 'h-48 overflow-hidden bg-gray-200'}>
                       <img
-                        src={product.image}
+                        src={product.image || 'https://via.placeholder.com/300x300'}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                       />
                     </div>
-                    <div className="p-4 flex-1">
-                      <p className="text-xs text-blue-600 font-semibold mb-1">{product.category}</p>
-                      <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{product.name}</h3>
-                      <div className="flex items-center justify-between mt-4">
-                        <span className="text-lg font-bold text-blue-600">${(product.price / 100).toFixed(2)}</span>
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded transition transform hover:scale-110">
+                    <div className="p-4 flex-1 flex flex-col">
+                      <Link to={`/product/${product.id}`}>
+                        <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{product.name}</h3>
+                      </Link>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{product.description}</p>
+                      <div className="flex items-center justify-between mt-auto pt-4">
+                        <span className="text-lg font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          disabled={(product.stock || 0) === 0}
+                          className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white p-2 rounded transition transform hover:scale-110"
+                        >
                           <ShoppingCart size={18} />
                         </button>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}

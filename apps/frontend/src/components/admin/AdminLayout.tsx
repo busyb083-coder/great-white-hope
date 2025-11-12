@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, LogOut, Settings, Package, Image, ShoppingCart, Users, BarChart3, FileText } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -9,6 +10,8 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
   const menuItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -20,10 +23,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { path: '/admin/settings', label: 'Settings', icon: Settings },
   ]
 
+  const handleLogout = () => {
+    logout()
+    navigate('/admin/login')
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gray-900 text-white transition-all duration-300`}>
+      <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gray-900 text-white transition-all duration-300 flex flex-col`}>
         <div className="p-4 flex items-center justify-between">
           {sidebarOpen && <h1 className="text-xl font-bold">Admin</h1>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-800 rounded">
@@ -31,7 +39,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </button>
         </div>
 
-        <nav className="mt-8">
+        <nav className="mt-8 flex-1">
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
@@ -50,8 +58,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-          <button className="flex items-center w-full px-4 py-2 hover:bg-gray-800 rounded transition-colors">
+        <div className="p-4 border-t border-gray-800">
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 hover:bg-gray-800 rounded transition-colors text-red-400 hover:text-red-300"
+          >
             <LogOut size={20} />
             {sidebarOpen && <span className="ml-3">Logout</span>}
           </button>
@@ -65,7 +76,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="px-6 py-4 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">Admin Panel</h2>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Admin User</span>
+              <span className="text-gray-600">{user?.name || 'Admin'}</span>
               <img src="https://via.placeholder.com/40" alt="Avatar" className="w-10 h-10 rounded-full" />
             </div>
           </div>
