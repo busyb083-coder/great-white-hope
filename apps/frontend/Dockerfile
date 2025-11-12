@@ -1,24 +1,23 @@
-FROM node:20-alpine as builder
+# Build stage
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+COPY package*.json ./
+COPY apps/frontend ./apps/frontend
+COPY packages ./packages
 
-COPY package.json pnpm-lock.yaml ./
+RUN npm ci
+RUN npm run build:frontend
 
-RUN pnpm install --frozen-lockfile
-
-COPY . .
-
-RUN pnpm run build
-
-FROM node:20-alpine
+# Runtime stage
+FROM node:18-alpine
 
 WORKDIR /app
 
 RUN npm install -g serve
 
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/apps/frontend/dist ./dist
 
 EXPOSE 3000
 

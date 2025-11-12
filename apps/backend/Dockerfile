@@ -1,25 +1,25 @@
-FROM node:20-alpine
+# Build stage
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package*.json ./
+COPY apps/backend ./apps/backend
+COPY packages ./packages
 
-# Install dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm ci
+RUN npm run build:backend
 
-# Copy source code
-COPY . .
+# Runtime stage
+FROM node:18-alpine
 
-# Build
-RUN pnpm run build
+WORKDIR /app
 
-# Expose port
+COPY package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/apps/backend/package*.json ./apps/backend/
+
 EXPOSE 4000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:4000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-# Start server
-CMD ["pnpm", "start"]
+CMD ["node", "apps/backend/dist/index.js"]
