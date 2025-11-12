@@ -1,0 +1,92 @@
+[
+  {
+    "sku": "CONC-001",
+    "name": "Premium Live Resin Concentrate",
+    "description": "High-quality live resin THCA concentrate with full terpene profile",
+    "category": "Concentrates",
+    "price": 4500,
+    "weight": "1g",
+    "inStock": true
+  },
+  {
+    "sku": "CONC-002",
+    "name": "Diamond THCA Sauce",
+    "description": "Pure THCA diamonds in terpene-rich sauce",
+    "category": "Concentrates",
+    "price": 5000,
+    "weight": "1g",
+    "inStock": true
+  },
+  {
+    "sku": "CONC-003",
+    "name": "Rosin Concentrate",
+    "description": "Solventless rosin concentrate",
+    "category": "Concentrates",
+    "price": 3500,
+    "weight": "1g",
+    "inStock": true
+  },
+  {
+    "sku": "FLOWER-001",
+    "name": "Premium Flower Oz",
+    "description": "Premium quality THCA flower",
+    "category": "Flower",
+    "price": 9000,
+    "weight": "1oz",
+    "inStock": true
+  },
+  {
+    "sku": "FLOWER-002",
+    "name": "Exotic Strain Quarter",
+    "description": "Exotic strain quarter pound",
+    "category": "Flower",
+    "price": 4500,
+    "weight": "0.25oz",
+    "inStock": true
+  },
+  {
+    "sku": "FLOWER-003",
+    "name": "Bulk Flower Half Pound",
+    "description": "Bulk flower half pound",
+    "category": "Flower",
+    "price": 17000,
+    "weight": "0.5oz",
+    "inStock": true
+  },
+  {
+    "sku": "MISC-001",
+    "name": "Rolling Papers Pack",
+    "description": "Premium rolling papers",
+    "category": "Miscellaneous",
+    "price": 300,
+    "weight": "1 pack",
+    "inStock": true
+  },
+  {
+    "sku": "MISC-002",
+    "name": "Glass Bong",
+    "description": "Premium glass bong",
+    "category": "Miscellaneous",
+    "price": 5000,
+    "weight": "1 unit",
+    "inStock": true
+  },
+  {
+    "sku": "COLLAB-001",
+    "name": "Collaboration Limited Edition",
+    "description": "Limited edition collaboration product",
+    "category": "Collaborators",
+    "price": 7500,
+    "weight": "1g",
+    "inStock": true
+  },
+  {
+    "sku": "COLLAB-002",
+    "name": "Artist Series Blend",
+    "description": "Artist series exclusive blend",
+    "category": "Collaborators",
+    "price": 6000,
+    "weight": "1g",
+    "inStock": true
+  }
+]

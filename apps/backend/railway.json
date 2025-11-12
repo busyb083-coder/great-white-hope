@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm run build",
+  "startCommand": "npm start",
+  "healthcheckPath": "/health",
+  "healthcheckInterval": 10,
+  "healthcheckTimeout": 5
+}
