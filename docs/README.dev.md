@@ -1,553 +1,348 @@
 # Local Development Guide
 
-Complete guide to setting up and developing Great White Hope locally.
+## Prerequisites
 
----
+- **Node.js** 18+ (https://nodejs.org)
+- **Docker** & **Docker Compose** (https://www.docker.com/products/docker-desktop)
+- **Git** (https://git-scm.com)
+- **pnpm** or **npm** (comes with Node.js)
 
-## 🚀 Quick Start (5 minutes)
+## Quick Start (5 minutes)
 
-### Prerequisites
-
-- Node.js 18+ (https://nodejs.org)
-- Docker & Docker Compose (https://www.docker.com/products/docker-desktop)
-- Git (https://git-scm.com)
-
-### Steps
+### 1. Clone Repository
 
 ```bash
-# 1. Clone repository
 git clone https://github.com/busyb083-coder/great-white-hope.git
 cd great-white-hope
+```
 
-# 2. Copy environment template
+### 2. Copy Environment File
+
+```bash
 cp .env.example .env.local
+```
 
-# 3. Start Docker services (Postgres, MinIO, MailHog, Redis)
+Edit `.env.local` with your configuration.
+
+### 3. Start Docker Services
+
+```bash
 npm run docker:up
+```
 
-# 4. Wait for services to be healthy (about 30 seconds)
-sleep 30
+This starts:
+- PostgreSQL database
+- MinIO (S3-compatible storage)
+- MailHog (email testing)
+- Redis (caching/sessions)
 
-# 5. Install dependencies
+### 4. Install Dependencies
+
+```bash
 npm install
+```
 
-# 6. Run database migrations
+### 5. Run Migrations
+
+```bash
 npm run migrate
+```
 
-# 7. Seed demo data
+### 6. Seed Demo Data
+
+```bash
 npm run seed
+```
 
-# 8. Start development servers
+This creates 25 demo products across 4 categories.
+
+### 7. Start Development Servers
+
+```bash
 npm run dev
 ```
 
-**Open browser:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:4000
-- MinIO Console: http://localhost:9001 (user: minioadmin, pass: minioadmin)
-- MailHog: http://localhost:8025
+This starts both frontend and backend in development mode with hot-reload.
+
+### 8. Open in Browser
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:4000
+- **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin)
+- **MailHog**: http://localhost:8025
+- **Admin Panel**: http://localhost:3000/admin
 
 ---
 
-## 📁 Project Structure
+## Development Workflow
 
-```
-great-white-hope/
-├── apps/
-│   ├── frontend/          # React + Vite
-│   └── backend/           # Express + Prisma
-├── packages/
-│   ├── shared/            # Shared utilities
-│   └── types/             # Shared TypeScript types
-├── docker-compose.yml     # Local services
-├── .env.example           # Environment template
-└── package.json           # Monorepo root
-```
+### Making Changes
 
----
+1. **Frontend Changes**
+   - Edit files in `apps/frontend/src/`
+   - Changes hot-reload automatically
+   - Check console for TypeScript errors
 
-## 🛠️ Development Workflow
+2. **Backend Changes**
+   - Edit files in `apps/backend/src/`
+   - Changes hot-reload automatically
+   - API restarts automatically
 
-### Start Development
+3. **Database Schema Changes**
+   - Edit `apps/backend/prisma/schema.prisma`
+   - Run `npm run migrate:create` to create migration
+   - Run `npm run migrate` to apply migration
 
-```bash
-# Start all services (Docker + dev servers)
-npm run docker:up
-npm run dev
-```
-
-### Frontend Development
+### Testing
 
 ```bash
-# Start only frontend
-cd apps/frontend
-npm run dev
-
-# Build frontend
-npm run build
-
-# Preview build
-npm run preview
-```
-
-### Backend Development
-
-```bash
-# Start only backend
-cd apps/backend
-npm run dev
-
-# Build backend
-npm run build
-
-# Run tests
+# Run all tests
 npm run test
-```
 
-### Database Changes
-
-```bash
-# Create new migration
-npm run migrate:create
-
-# Run pending migrations
-npm run migrate
-
-# Reset database (WARNING: deletes all data)
-npm run migrate:reset
-
-# Seed demo data
-npm run seed
-```
-
----
-
-## 🗄️ Database
-
-### Access PostgreSQL
-
-```bash
-# Connect to database
-docker exec -it gwh-postgres psql -U postgres -d great_white_hope
-
-# List tables
-\dt
-
-# Exit
-\q
-```
-
-### View Data
-
-```bash
-# Users
-SELECT * FROM "User";
-
-# Products
-SELECT * FROM "Product";
-
-# Orders
-SELECT * FROM "Order";
-```
-
----
-
-## 📦 Docker Services
-
-### Manage Services
-
-```bash
-# Start all services
-npm run docker:up
-
-# Stop all services
-npm run docker:down
-
-# View logs
-npm run docker:logs
-
-# Restart specific service
-docker-compose restart postgres
-docker-compose restart minio
-docker-compose restart mailhog
-```
-
-### Service Details
-
-| Service | Port | URL | Credentials |
-|---------|------|-----|-------------|
-| PostgreSQL | 5432 | localhost:5432 | user: postgres, pass: postgres |
-| MinIO (S3) | 9000/9001 | http://localhost:9001 | user: minioadmin, pass: minioadmin |
-| MailHog | 1025/8025 | http://localhost:8025 | - |
-| Redis | 6379 | localhost:6379 | - |
-| Backend | 4000 | http://localhost:4000 | - |
-| Frontend | 3000 | http://localhost:3000 | - |
-
----
-
-## 🔐 Authentication
-
-### Create Admin User
-
-```bash
-# Via seed script
-npm run seed
-
-# Manually via database
-docker exec -it gwh-postgres psql -U postgres -d great_white_hope << EOF
-INSERT INTO "User" (email, password, name, role) VALUES (
-  'admin@example.com',
-  'hashed_password_here',
-  'Admin User',
-  'ADMIN'
-);
-EOF
-```
-
-### Login
-
-1. Go to http://localhost:3000/admin
-2. Email: admin@example.com
-3. Password: (set during seeding)
-
----
-
-## 💾 Environment Variables
-
-### Required for Development
-
-```env
-# Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/great_white_hope
-
-# Storage
-S3_ENDPOINT=http://localhost:9000
-S3_BUCKET=great-white-hope
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin
-
-# Email
-SMTP_HOST=localhost
-SMTP_PORT=1025
-
-# Auth
-JWT_SECRET=dev-secret-key-change-in-production
-
-# URLs
-FRONTEND_URL=http://localhost:3000
-BACKEND_URL=http://localhost:4000
-```
-
-### Optional for Development
-
-```env
-# Monitoring
-SENTRY_DSN=  # Leave empty for local dev
-
-# Payment Processors
-STRIPE_SECRET_KEY=sk_test_...
-PAYPAL_CLIENT_ID=...
-GREEN_FINANCIAL_API_KEY=...
-CRYPTOMASS_API_KEY=...
-```
-
----
-
-## 🧪 Testing
-
-### Run Tests
-
-```bash
-# All tests
-npm run test
+# Run specific test suite
+cd apps/frontend && npm run test
+cd apps/backend && npm run test
 
 # Watch mode
 npm run test:watch
-
-# Coverage
-npm run test:coverage
-
-# E2E tests
-npm run test:e2e
 ```
 
-### Test Admin Panel
-
-1. Go to http://localhost:3000/admin
-2. Login with admin credentials
-3. Test product CRUD
-4. Test media upload
-5. Test content publishing
-
-### Test Payment Processors
-
-1. Go to http://localhost:3000/checkout
-2. Select each payment processor
-3. Verify payment form appears
-4. Test with test credentials
-
----
-
-## 📝 Code Quality
-
-### Lint Code
+### Code Quality
 
 ```bash
+# Lint all code
 npm run lint
-```
 
-### Format Code
-
-```bash
+# Format all code
 npm run format
-```
 
-### Type Check
-
-```bash
+# Type check
 npm run type-check
 ```
 
 ---
 
-## 🐛 Debugging
+## Docker Services
 
-### Backend Debugging
+### PostgreSQL
 
+- **Host**: localhost
+- **Port**: 5432
+- **User**: postgres
+- **Password**: postgres
+- **Database**: great_white_hope
+
+Connect with:
 ```bash
-# Enable debug logs
-LOG_LEVEL=debug npm run dev
-
-# Use VS Code debugger
-# Add breakpoints and press F5
+psql postgresql://postgres:postgres@localhost:5432/great_white_hope
 ```
 
-### Frontend Debugging
+### MinIO (S3-Compatible Storage)
 
-```bash
-# React DevTools browser extension
-# Open browser DevTools (F12)
-# Check Console for errors
-```
+- **Console**: http://localhost:9001
+- **Access Key**: minioadmin
+- **Secret Key**: minioadmin
+- **Bucket**: great-white-hope
+- **Region**: us-east-1
 
-### Database Debugging
+### MailHog (Email Testing)
 
-```bash
-# View all queries
-docker logs gwh-postgres
+- **Web Interface**: http://localhost:8025
+- **SMTP**: localhost:1025
 
-# Connect to database
-docker exec -it gwh-postgres psql -U postgres -d great_white_hope
-```
+All emails sent during development appear in MailHog.
+
+### Redis
+
+- **Host**: localhost
+- **Port**: 6379
+- **No authentication**
 
 ---
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
-### Port Already in Use
+### Docker Services Won't Start
 
 ```bash
-# Find process using port
-lsof -i :3000
-lsof -i :4000
+# Check if Docker is running
+docker ps
 
-# Kill process
-kill -9 <PID>
+# Check logs
+npm run docker:logs
 
-# Or change port in docker-compose.yml
+# Restart services
+npm run docker:down
+npm run docker:up
 ```
 
 ### Database Connection Error
 
 ```bash
-# Check if PostgreSQL is running
+# Verify PostgreSQL is running
 docker ps | grep postgres
 
-# Check logs
-docker logs gwh-postgres
+# Check connection string in .env.local
+# Should be: postgresql://postgres:postgres@localhost:5432/great_white_hope
 
-# Restart database
-docker-compose restart postgres
+# Reset database
+npm run migrate:reset
+npm run seed
 ```
 
-### Docker Services Won't Start
+### Frontend Shows API Errors
 
 ```bash
-# Check Docker is running
-docker ps
+# Check backend is running
+curl http://localhost:4000/health
 
-# Rebuild containers
-docker-compose down -v
-npm run docker:up
+# Check VITE_API_URL in .env.local
+# Should be: http://localhost:4000
 
-# Check logs
-docker-compose logs
+# Check CORS configuration in backend
 ```
 
-### Dependencies Not Installed
+### Port Already in Use
 
 ```bash
-# Clear node_modules
-rm -rf node_modules apps/*/node_modules
+# Change ports in docker-compose.yml or .env.local
+# Or kill existing process:
+lsof -i :3000  # Find process on port 3000
+kill -9 <PID>  # Kill process
+```
 
-# Reinstall
+### Node Modules Issues
+
+```bash
+# Clear and reinstall
+rm -rf node_modules
 npm install
 
-# Clear pnpm cache
-pnpm store prune
+# Or with pnpm
+pnpm install
 ```
 
 ---
 
-## 📚 API Development
+## Project Structure
 
-### Create New Endpoint
-
-1. **Define route** in `apps/backend/src/routes/`
-2. **Add handler** with proper error handling
-3. **Add validation** with Zod
-4. **Test with curl or Postman**
-
-Example:
-
-```typescript
-// apps/backend/src/routes/products.ts
-router.get('/:id', async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const product = await db.product.findUnique({
-      where: { id: parseInt(id) }
-    });
-    
-    if (!product) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-    
-    res.json(product);
-  } catch (err) {
-    next(err);
-  }
-});
 ```
-
-### Test Endpoint
-
-```bash
-curl http://localhost:4000/api/v1/products/1
+apps/
+├── frontend/              # React + Vite
+│   ├── src/
+│   │   ├── pages/        # Page components
+│   │   ├── components/   # Reusable components
+│   │   ├── api/          # API client
+│   │   └── App.tsx       # Main app
+│   └── package.json
+│
+└── backend/              # Express + Node
+    ├── src/
+    │   ├── routes/       # API routes
+    │   ├── middleware/   # Express middleware
+    │   ├── adapters/     # Payment adapters
+    │   └── index.ts      # Server entry
+    ├── prisma/
+    │   └── schema.prisma # Database schema
+    └── package.json
 ```
 
 ---
 
-## 🎨 Frontend Development
+## Common Tasks
 
-### Add New Page
+### Add a New Page
 
-1. Create component in `apps/frontend/src/pages/`
+1. Create `apps/frontend/src/pages/NewPage.tsx`
 2. Add route in `apps/frontend/src/App.tsx`
-3. Add navigation link
+3. Import and use in navigation
 
-Example:
+### Add a New API Endpoint
 
-```typescript
-// apps/frontend/src/pages/NewPage.tsx
-export default function NewPage() {
-  return <div>New Page</div>;
-}
+1. Create route in `apps/backend/src/routes/`
+2. Export from `apps/backend/src/index.ts`
+3. Call from frontend using API client
 
-// apps/frontend/src/App.tsx
-<Route path="/new" element={<NewPage />} />
-```
+### Add a New Database Table
 
-### Use API
+1. Add table to `apps/backend/prisma/schema.prisma`
+2. Run `npm run migrate:create` (creates migration file)
+3. Run `npm run migrate` (applies migration)
+4. Add query helpers in `apps/backend/src/db.ts`
 
-```typescript
-import { useEffect, useState } from 'react';
-import api from '../api/client';
+### Configure Payment Processor
 
-export default function MyComponent() {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    api.get('/api/v1/products')
-      .then(res => setData(res.data))
-      .catch(err => console.error(err));
-  }, []);
-
-  return <div>{JSON.stringify(data)}</div>;
-}
-```
+1. Get API keys from payment processor
+2. Add to `.env.local`
+3. Configure in `apps/backend/src/adapters/`
+4. Test in checkout flow
 
 ---
 
-## 📦 Adding Dependencies
+## Performance Tips
+
+### Frontend
+
+- Use React DevTools to check for unnecessary renders
+- Use Lighthouse to check performance scores
+- Optimize images (use next-gen formats)
+- Code-split large components with React.lazy
+
+### Backend
+
+- Use database indexes for frequently queried fields
+- Cache responses with Redis
+- Use pagination for large datasets
+- Monitor with Sentry
+
+---
+
+## Debugging
+
+### Frontend Debugging
 
 ```bash
-# Add to frontend
-cd apps/frontend
-npm install package-name
+# Open DevTools
+F12 or Cmd+Option+I
 
-# Add to backend
-cd apps/backend
-npm install package-name
-
-# Add to root (monorepo)
-npm install -w . package-name
+# Check console for errors
+# Check Network tab for API calls
+# Use React DevTools extension
 ```
 
----
-
-## 🔄 Git Workflow
+### Backend Debugging
 
 ```bash
-# Create feature branch
-git checkout -b feature/my-feature
-
-# Make changes
-# ...
-
-# Commit
-git add .
-git commit -m "feat: add my feature"
-
-# Push
-git push origin feature/my-feature
-
-# Create Pull Request on GitHub
+# Check logs in terminal
+# Use VS Code debugger (launch.json config)
+# Add console.log statements
+# Use Sentry for production errors
 ```
 
----
-
-## 📊 Useful Commands
+### Database Debugging
 
 ```bash
-# View all available commands
-npm run
+# Connect to database
+psql postgresql://postgres:postgres@localhost:5432/great_white_hope
 
-# Check TypeScript errors
-npm run type-check
+# List tables
+\dt
 
-# Format all code
-npm run format
+# Query data
+SELECT * FROM products;
 
-# Lint all code
-npm run lint
-
-# View Docker logs
-npm run docker:logs
-
-# Stop all services
-npm run docker:down
+# Check migrations
+SELECT * FROM _prisma_migrations;
 ```
 
 ---
 
-## 🎯 Next Steps
+## Next Steps
 
-1. Explore the codebase
-2. Make a small change to frontend
-3. Test the change locally
-4. Create a new product via admin panel
-5. View product on shop page
-6. Test checkout flow
+- Read [README.deploy.md](./README.deploy.md) for production deployment
+- Read [PAYMENT_SETUP.md](./PAYMENT_SETUP.md) for payment processor setup
+- Check [API.md](./API.md) for API documentation
 
-**Happy coding!** 🚀
+---
+
+**Happy developing! 🚀**
