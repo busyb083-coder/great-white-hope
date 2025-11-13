@@ -135,6 +135,26 @@ git push origin main
 - **[ADMIN_GUIDE.md](./docs/ADMIN_GUIDE.md)** - Admin panel features & usage
 - **[API.md](./docs/API.md)** - Backend API documentation
 - **[BACKUP_RESTORE.md](./docs/BACKUP_RESTORE.md)** - Database backup & restore procedures
+- **[HEALTH_CHECK_README.md](./HEALTH_CHECK_README.md)** - Repository health check tool
+- **[HEALTH_CHECK_SUMMARY.md](./HEALTH_CHECK_SUMMARY.md)** - Latest health check results
+
+### 🔍 Health Check
+
+Run comprehensive repository health checks:
+
+```bash
+npm run health-check
+```
+
+This will:
+- ✅ List all scripts and workspace layout
+- ✅ Run npm ci for clean dependencies
+- ✅ Execute lint, tests, and builds for frontend/backend
+- ✅ Analyze PR changes and their impact
+- ✅ Generate JSON report with failures and remediation suggestions
+
+**Output**: Console summary + `health-check-report.json`  
+**Documentation**: See [HEALTH_CHECK_README.md](./HEALTH_CHECK_README.md) for details
 
 ---
 

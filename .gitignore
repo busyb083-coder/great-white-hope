@@ -64,3 +64,6 @@ backups/
 # IDE settings
 .vscode/settings.json
 .idea/workspace.xml
+
+# Health check reports
+health-check-report.json
