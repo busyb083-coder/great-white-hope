@@ -27,7 +27,8 @@
     "format:backend": "cd apps/backend && npm run format",
     "type-check": "npm run type-check:frontend && npm run type-check:backend",
     "type-check:frontend": "cd apps/frontend && npm run type-check",
-    "type-check:backend": "cd apps/backend && npm run type-check"
+    "type-check:backend": "cd apps/backend && npm run type-check",
+    "health-check": "node health-check.js"
   },
   "workspaces": [
     "apps/frontend",
