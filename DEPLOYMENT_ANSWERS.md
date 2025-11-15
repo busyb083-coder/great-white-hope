@@ -2,6 +2,16 @@
 
 This document provides answers to the deployment configuration questions for the Great White Hope e-commerce platform.
 
+## 🎯 TL;DR - Quick Answers
+
+| Question | Answer |
+|----------|--------|
+| **What environment variable does the React frontend use to connect to the backend?** | `VITE_API_URL` |
+| **Where is it used?** | `apps/frontend/src/lib/api.ts`, `apps/frontend/src/pages/AdminLogin.tsx`, `apps/frontend/vite.config.ts` |
+| **What is the Railway backend URL?** | Find it in: Railway Dashboard → Your Project → Backend Service → Settings → Domains <br> Format: `https://[project-name].up.railway.app` or `https://[project-name]-production.up.railway.app` |
+| **How to set VITE_API_URL in Vercel?** | Vercel Dashboard → Project → Settings → Environment Variables → Add `VITE_API_URL` with your Railway backend URL |
+| **Backend health check URL** | `https://your-railway-url.up.railway.app/health` (should return `{"status":"ok"}`) |
+
 ---
 
 ## Question 1: Frontend Environment Variable Name
